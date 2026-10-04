@@ -113,6 +113,15 @@ main{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr) 400px;min-hei
 .tips{margin:16px 0 0;padding:0;list-style:none;display:grid;gap:6px}
 .tips li{padding:8px 12px 8px 30px;border-radius:8px;background:var(--bg);position:relative}
 .tips li::before{content:"›";position:absolute;left:12px;top:6px;font-weight:700;color:var(--accent)}
+.args{display:grid;gap:8px;margin:14px 0 0}
+.arg{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;background:var(--panel);padding:10px 12px}
+.arg h4{margin:0 0 6px;font-size:13px;color:var(--accent)}
+.arg .as{font-size:16px;line-height:1.45}
+.arg .ac,.arg .aq{margin-top:6px;font-size:14px;line-height:1.4;color:var(--muted)}
+.arg .ac b,.arg .aq b{color:var(--ink)}
+.args-hint{font-size:13px;color:var(--muted);padding:2px 2px 0}
+.objarg{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--accent-soft);font-size:14px;line-height:1.4}
+.dupr .painlast{color:var(--warn)}
 .branches{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .br{border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 14px;font-weight:600;display:flex;gap:8px;align-items:center}
 .br:hover{border-color:var(--accent);background:var(--accent-soft)}
@@ -1254,7 +1263,7 @@ const DEFAULT_FIELDS = {
   owners:{q:"Кто собственники? Все согласны на продажу? Есть дети-собственники?",l:"Собственники",c:["Один","Несколько","Супруг(а)","Есть дети"],m:true},
   burden:{q:"Квартира в ипотеке? Есть обременения?",l:"Ипотека / обременения",c:["Нет","Ипотека","Не знает"]},
   agents:{q:"Агенты звонят? Уже работаете с кем-то из агентств?",l:"Агенты",c:["Никого","Звонят","Работает с агентом","Эксклюзив у другого"]},
-  pain:{q:"Что сейчас больше всего беспокоит в продаже?",l:"Что беспокоит",c:["Пустые показы","Торг","Документы","Нет времени","Безопасность","Всё хорошо"],m:true},
+  pain:{q:"Что сейчас больше всего беспокоит в продаже?",l:"Что беспокоит",c:["Торг","Долго висит","Покупаю другое","Ипотека","Безопасность, документы","Нет времени, показы","Цена","Всё хорошо"],m:true},
   changes:{q:"Что изменилось с прошлого разговора — были показы, предложения по цене?",l:"Что изменилось",c:["Без изменений","Были показы","Снизил цену","Есть предложение","Передумал продавать"],m:true},
   pay:{q:"Как планируете покупать: наличные, ипотека — уже одобрена?",l:"Оплата",c:["Наличные","Ипотека одобрена","Ипотека не одобрена","Маткапитал / сертификат","Продаёт свою"],m:true},
   who:{q:"Кто придёт на показ? Будут все, кто принимает решение?",l:"Кто придёт",c:["Один","С супругом(ой)","С семьёй","Все, кто решает"],m:true},
@@ -1289,7 +1298,7 @@ const DEFAULT_FIELDS = {
   cancel:{q:"Подскажите, что повлияло на решение?",l:"Причина отказа",c:["Цена","Район","Планировка","Этаж","Нашли другое"],m:true,ph:"новые критерии поиска"}
 };
 const DEFAULT_FORMS = {
-  docs:["burden","opeka","matcap"], plans:["nextbuy","srok"],
+  docs:["burden","opeka","matcap"], plans:["nextbuy","srok","pain"],
   owner:["reason","srok","time","shows","price","owners","burden","agents"],
   pain:["pain"], follow:["changes","srok","price","agents"],
   buyer:["pay","who"], feedback:["score","likes","dislikes","price"], cancel:["cancel"],
@@ -1297,6 +1306,59 @@ const DEFAULT_FORMS = {
   report:["views","calls","showsw","fb","decision"], referral:["refs","circle"],
   fbowner:["price","owners","burden","free"], fbagent:["actual","excl","split","price","burden","showby"]
 };
+/* ---------- Банк аргументов по болям ---------- */
+const ARGS = {
+  torg:{l:"Торг", say:"Покупатель почти всегда торгуется. Я веду переговоры с цифрами по проданным аналогам, а не на эмоциях: моя задача — чтобы вы отдали как можно меньше.",
+    calc:p=>"Средний торг на вторичке Кемерово ≈ 4,9% (Этажи, июнь 2026)"+(p?" — на этой квартире это ≈ "+fmtRub(Math.round(p*0.049/10000)*10000):"")+".",
+    q:"Что ответите покупателю, который придёт и предложит минус 300?"},
+  srok:{l:"Долго висит", say:"Самое ценное время у объявления — первые недели. Потом просмотров меньше, покупатели думают, что с квартирой что-то не так, и давят ценой. Я делаю так, чтобы квартиру увидели свои покупатели офиса, а не только Авито.",
+    calc:()=>"Чем дольше висит, тем сильнее торг: старое объявление — сигнал покупателю «можно сбить».",
+    q:"Сколько готовы ждать? Что будет с вашими планами, если продажа затянется на полгода?"},
+  alt:{l:"Покупаю другое", say:"Чаще всего продают, чтобы купить. Самое сложное — состыковать две сделки, чтобы не остаться без жилья и не потерять присмотренный вариант. Я веду обе сразу.",
+    calc:()=>"По оценкам рынка, 80–85% сделок на вторичке — альтернативные: продавец одновременно покупает.",
+    q:"Уже присмотрели, что покупать? Как планируете состыковать по срокам?"},
+  ipoteka:{l:"Ипотека", say:"Сделки часто срываются на этапе банка: оценка, одобрение объекта, сроки — и вы теряете месяц. В Этажах свой ипотечный отдел: проверяем покупателя заранее и ведём банк до выдачи денег.",
+    calc:()=>"Около 31% сделок на вторичке в 2026 — с ипотекой, то есть примерно каждый третий покупатель (Авито Недвижимость).",
+    q:"Как проверите, что одобрение у покупателя реальное и банк одобрит вашу квартиру?"},
+  safe:{l:"Безопасность, документы", say:"Сделка идёт через безопасные расчёты: деньги вы получаете гарантированно. Документы и договоры готовят юристы компании, а покупатель получает гарантию Этажей — защищённый покупатель решается быстрее и меньше торгуется.",
+    calc:()=>"Гарантийный сертификат Этажей для покупателя — до 15 млн ₽.",
+    q:"Как планируете получить деньги и убедиться, что они настоящие и не вернутся?"},
+  time:{l:"Нет времени, показы", say:"Вы не обязаны срываться с работы на каждый показ. Звонки и показы беру на себя, к вам приходит только тот, кто реально готов купить.",
+    calc:()=>"Часть звонков по объявлению — агенты и перекупщики. Я их отсеиваю до показа.",
+    q:"Сколько показов уже было и сколько из них оказались пустыми?"},
+  price:{l:"Цена", say:"Цена в объявлениях и цена продаж — разные вещи. Подготовлю анализ по реально проданным квартирам в вашем районе — бесплатно и ни к чему не обязывает.",
+    calc:()=>"Средняя цена вторички в Кемерово ≈ 132,9 тыс. ₽/м² (Этажи, июнь 2026), но решают проданные аналоги в вашем доме.",
+    q:"Как определяли цену — по объявлениям или по проданным квартирам?"}
+};
+function argKey(label){
+  const s=String(label||"").toLowerCase().replace(/ё/g,"е");
+  if(/торг/.test(s)) return "torg";
+  if(/висит|долго|не продает|звонков нет/.test(s)) return "srok";
+  if(/покупа|встречн|альтерн/.test(s)) return "alt";
+  if(/ипотек|банк/.test(s)) return "ipoteka";
+  if(/безопас|документ|обман|мошен/.test(s)) return "safe";
+  if(/времен|показ/.test(s)) return "time";
+  if(/цен/.test(s)) return "price";
+  if(/все хорошо/.test(s)) return "good";
+  return "";
+}
+function argPrice(){ try{ return (S.ad&&S.ad.price) || (typeof mgGuessPrice==="function"?mgGuessPrice():0) || 0; }catch(e){ return 0; } }
+function argCard(k){
+  const A=ARGS[k]; if(!A) return "";
+  return `<div class="arg"><h4>${esc(A.l)}</h4><div class="as">${esc(A.say)}</div><div class="ac"><b>Расклад:</b> ${esc(A.calc(argPrice()))}</div><div class="aq"><b>Вопрос:</b> ${esc(A.q)}</div></div>`;
+}
+function renderPainArgs(){
+  const v=S.form.pain; const sel=((v&&v.c)||[]).slice();
+  const nb=(S.form.nextbuy&&S.form.nextbuy.c)||[]; if(nb.some(x=>/покупает|встречн/i.test(x)) && !sel.some(x=>argKey(x)==="alt")) sel.unshift("Покупаю другое");
+  if(!sel.length) return `<div class="args"><div class="args-hint">Отметьте, что беспокоит собственника, — здесь появится аргумент: фраза, расклад и вопрос.</div></div>`;
+  const keys=[...new Set(sel.map(argKey))];
+  const cards=keys.map(k=> k==="good"
+    ? `<div class="arg"><h4>Всё хорошо</h4><div class="as">Не спорьте. Спросите про результат: сколько звонков дошло до показа и сколько было предложений по цене. Готовый ответ — в возражении «У меня и так всё хорошо».</div></div>`
+    : argCard(k)).join("");
+  return `<div class="args">${cards}</div>`;
+}
+const OBJ_ARG = {"self":"torg","commission":"torg","price":"price","no-rush":"srok","all-good":"time","think":"safe","st-lowered":"price","st-season":"srok"};
+
 function formLines(f){
   return Object.keys(f).filter(k=>FIELDS[k] && f[k] && ((f[k].c||[]).length || (f[k].t||"").trim()))
     .map(k=>{ const v=[...(f[k].c||[])]; if((f[k].t||"").trim()) v.push(f[k].t.trim()); return FIELDS[k].l+": "+v.join(", "); });
@@ -1349,6 +1411,8 @@ let FIELDS = LS.get("rp_fields", null) || clone(DEFAULT_FIELDS);
 let FORMS = LS.get("rp_forms", null) || clone(DEFAULT_FORMS);
 Object.keys(DEFAULT_FIELDS).forEach(k=>{ if(!FIELDS[k]) FIELDS[k]=clone(DEFAULT_FIELDS[k]); else if(FIELDS[k].q===undefined) FIELDS[k].q=DEFAULT_FIELDS[k].q; });
 Object.keys(DEFAULT_FORMS).forEach(k=>{ if(!FORMS[k]) FORMS[k]=clone(DEFAULT_FORMS[k]); });
+if(FORMS.plans && !FORMS.plans.includes("pain")){ FORMS.plans.push("pain"); try{localStorage.setItem("rp_forms",JSON.stringify(FORMS))}catch(e){} }
+if(FIELDS.pain && JSON.stringify(FIELDS.pain.c)===JSON.stringify(["Пустые показы","Торг","Документы","Нет времени","Безопасность","Всё хорошо"])){ FIELDS.pain.c=clone(DEFAULT_FIELDS.pain.c); try{localStorage.setItem("rp_fields",JSON.stringify(FIELDS))}catch(e){} }
 function saveForms(){ LS.set("rp_fields", FIELDS); LS.set("rp_forms", FORMS); }
 let draft = LS.get("rp_draft", {client:"",phone:"",object:"",notes:"",sc:0,consent:"none"});
 
@@ -1550,6 +1614,7 @@ function renderStep(){
       ${(st.must||st.consentStep) ? `<div class="chow"><div class="ml">Как получено согласие</div><div class="qchips">${(settings.ctypes||DEFAULT_CTYPES).map(x=>chip("data-chow",x,S.consent==="signed"&&S.chow===x)).join("")}</div></div>` : ""}
       ${scBase(cur().id)==="report" ? `<div style="margin-top:14px"><button class="primary" data-rpt style="margin-left:0">📄 Отчёт для клиента (страница / PDF)</button></div>` : ""}
       ${st.form && FORMS[st.form] ? renderForm(st.form) : ""}
+      ${st.form && FORMS[st.form] && FORMS[st.form].includes("pain") ? renderPainArgs() : ""}
       ${st.tips.length && (!st.form || st.keepTips)?`<ul class="tips">${st.tips.map(t=>`<li>${fill(t)}</li>`).join("")}</ul>`:""}`;
   }
   html += `<div class="branches">${st.next.map((b,i)=>{
@@ -1562,7 +1627,8 @@ function renderStep(){
 function renderObjections(){
   const q = $("objSearch").value.trim().toLowerCase();
   const used = new Set(); cur().steps.forEach(st=>st.next.forEach(n=>{ if(n.to.startsWith("obj:")) used.add(n.to.slice(4)); }));
-  const list = objections.filter(o => !q || (o.t+" "+o.a).toLowerCase().includes(q)).sort((a,b)=> q ? 0 : (used.has(b.id)?1:0)-(used.has(a.id)?1:0));
+  const argItems = S.edit ? [] : Object.keys(ARGS).map(k=>({id:"arg-"+k,arg:k,t:"Аргумент: "+ARGS[k].l.toLowerCase(),a:ARGS[k].say+" "+ARGS[k].q}));
+  const list = objections.concat(argItems).filter(o => !q || (o.t+" "+o.a).toLowerCase().includes(q)).sort((a,b)=> q ? 0 : (used.has(b.id)?1:0)-(used.has(a.id)?1:0));
   $("addObj").style.display = S.edit ? "" : "none";
   if (!list.length){ $("objlist").innerHTML = `<div class="empty-state">Ничего не найдено</div>`; return; }
   $("objlist").innerHTML = list.map((o,i)=>{
@@ -1570,7 +1636,8 @@ function renderObjections(){
     let body = "";
     if (open) body = S.edit
       ? `<div class="ans"><input class="edit-in" data-oid="${o.id}" data-of="t" value="${esc(o.t)}">${o.flow?`<div class="edit-note">Разговор по шагам — каждая реплика с новой строки: «Вы: …», «Клиент: …», «Аргумент: …». Закрытие пульт добавит сам. Очистите поле — останется короткий ответ ниже.</div><textarea class="edit-in" data-oid="${o.id}" data-of="flow" style="min-height:180px">${esc(flowToText(o.flow))}</textarea><div class="edit-note">Короткий ответ (для поиска и ИИ):</div>`:""}<textarea class="edit-in" data-oid="${o.id}" data-of="a">${esc(o.a)}</textarea><button class="mini" data-del="${o.id}">Удалить</button></div>`
-      : `<div class="ans">${o.flow&&o.flow.length?renderFlow(o):fill(o.a)}${isMeetScenario()&&cur().steps[S.step]&&!cur().steps[S.step].meeting?`<div><button class="mini tomeet" data-gomeet>↩ К встрече <kbd>M</kbd></button></div>`:cur().consentGoal&&cur().steps[S.step]&&!cur().steps[S.step].must?`<div><button class="mini tomeet" data-gomeet>↩ К согласию <kbd>M</kbd></button></div>`:""}</div>`;
+      : o.arg ? `<div class="ans">${argCard(o.arg)}</div>`
+      : `<div class="ans">${o.flow&&o.flow.length?renderFlow(o):fill(o.a)}${OBJ_ARG[o.id]&&ARGS[OBJ_ARG[o.id]]?`<div class="objarg"><b>Расклад:</b> ${esc(ARGS[OBJ_ARG[o.id]].calc(argPrice()))}<br><b>Вопрос:</b> ${esc(ARGS[OBJ_ARG[o.id]].q)}</div>`:""}${isMeetScenario()&&cur().steps[S.step]&&!cur().steps[S.step].meeting?`<div><button class="mini tomeet" data-gomeet>↩ К встрече <kbd>M</kbd></button></div>`:cur().consentGoal&&cur().steps[S.step]&&!cur().steps[S.step].must?`<div><button class="mini tomeet" data-gomeet>↩ К согласию <kbd>M</kbd></button></div>`:""}</div>`;
     return `<div class="ob ${open?"open":""} ${q&&i===0?"first":""}" id="ob-${o.id}"><button data-obj="${o.id}">${esc(o.t)}</button>${body}</div>`;
   }).join("");
 }
@@ -1622,7 +1689,7 @@ document.addEventListener("click",ev=>{ const t=ev.target.closest("[data-flnext]
   if(t.dataset.flnext) S.flowPos[id]=(S.flowPos[id]||0)+1; else if(t.dataset.flall) S.flowPos[id]=99; else S.flowPos[id]=0;
   renderObjections(); },true);
 function openObjection(id, flash){
-  S.openObj = (S.openObj===id && !flash) ? null : id; if(S.openObj) S.objs.add(id);
+  S.openObj = (S.openObj===id && !flash) ? null : id; if(S.openObj && !String(id).startsWith("arg-")) S.objs.add(id);
   if (flash && $("objSearch").value){ $("objSearch").value=""; }
   renderObjections();
   const el = $("ob-"+id);
@@ -3001,7 +3068,7 @@ function renderAdBar(){
     if(S.adFull && a.desc) h+=`<div class="addesc">${esc(a.desc)}${a.desc.length>=600?"…":""}</div>`;
   }
   if(dups.length){
-    h+=`<div class="addup"><b>🔁 Уже звонил${dups.some(d=>d.strong)?"":"? Проверьте"}:</b>${dups.map(({e,why,strong})=>`<div class="dupr ${strong?"":"weak"}"><span>${fmtDate(e.ts)} · <b>${esc(rlabel(e)||"—")}</b>${e.client?" · "+esc(e.client):""}${e.personal?" · "+esc(e.personal):""}${e.callbackAt&&!e.done?" · перезвон "+fmtDate(e.callbackAt):""}<br><small>${esc(why)}${e.notes?" · «"+esc(e.notes.slice(0,90))+(e.notes.length>90?"…":"")+"»":""}</small></span>
+    h+=`<div class="addup"><b>🔁 Уже звонил${dups.some(d=>d.strong)?"":"? Проверьте"}:</b>${dups.map(({e,why,strong})=>`<div class="dupr ${strong?"":"weak"}"><span>${fmtDate(e.ts)} · <b>${esc(rlabel(e)||"—")}</b>${e.client?" · "+esc(e.client):""}${e.personal?" · "+esc(e.personal):""}${e.callbackAt&&!e.done?" · перезвон "+fmtDate(e.callbackAt):""}${e.form&&e.form.pain&&(e.form.pain.c||[]).length?`<br><span class="painlast">Беспокоило: <b>${esc(e.form.pain.c.join(", "))}</b> — звоните с этим поводом</span>`:""}<br><small>${esc(why)}${e.notes?" · «"+esc(e.notes.slice(0,90))+(e.notes.length>90?"…":"")+"»":""}</small></span>
       <span class="dupb">${(e.client&&!$("fClient").value.trim())||(e.personal&&!$("fPersonal").value.trim())?`<button class="mini" data-dupfill="${e.id}" title="Подставить имя и личный номер из прошлого звонка">Подставить</button>`:""}<button class="mini" data-dupopen="${e.id}">В журнал</button></span></div>`).join("")}</div>`;
   }
   bar.innerHTML=h; bar.hidden=false;
