@@ -120,6 +120,13 @@ main{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr) 400px;min-hei
 .arg .ac,.arg .aq{margin-top:6px;font-size:14px;line-height:1.4;color:var(--muted)}
 .arg .ac b,.arg .aq b{color:var(--ink)}
 .args-hint{font-size:13px;color:var(--muted);padding:2px 2px 0}
+.whymore summary{cursor:pointer;font-size:14px;color:var(--accent);padding:4px 2px}
+.whymore .args{margin-top:8px}
+.cd-meta{font-size:13px;color:var(--muted);margin:0 0 6px}
+.cd-card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px;display:grid;gap:12px}
+.cd-q{font-size:19px;line-height:1.35;font-weight:600}
+.cd-btns{display:flex;gap:8px;flex-wrap:wrap}
+.cd-btns button{min-height:44px;padding:0 16px;margin-left:0}
 .objarg{margin-top:10px;padding:8px 10px;border-radius:8px;background:var(--accent-soft);font-size:14px;line-height:1.4}
 .dupr .painlast{color:var(--warn)}
 .branches{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
@@ -791,13 +798,13 @@ tr.due td{background:var(--warn-soft)}
 const DEFAULT_SCRIPTS = [
 { id:"coldc", group:"Продавцы", name:"Холодный", consentGoal:true, aptNeed:true, resLabel:"Согласие получено", steps:[
   {id:"c1",title:"Контакт",goal:"Собственник на линии и готов говорить пару минут",
-   text:"Добрый день! {клиент}? Я по вашей квартире — {объект}. Она ещё продаётся?\n… Вы собственник?\n… Меня зовут {агент}, агентство «{агентство}», работаю как раз по вашему району. Скажу сразу: звоню не уговаривать. Задам пару вопросов, а вы сами решите, интересно вам или нет. Не против?",
+   text:"Добрый день! {клиент}? Я по вашей квартире — {объект}.\n… Ещё продаётся?\n… Вы собственник?\n… Меня зовут {агент}, агентство «{агентство}». Работаю по вашему району.\n… Звоню не уговаривать. Пара вопросов — и сами решите, интересно или нет. Не против?",
    tips:["Каждая реплика заканчивается вопросом — замолчите и дождитесь ответа","Имени нет в объявлении — начните с «Добрый день! Я по вашей квартире…»","«Не против?» — вопрос на «нет»: сказать «не против» человеку легче, чем «да»"],
    next:[{l:"Собственник, не против",to:"c2"},{l:"Неудобно говорить",to:"s7"},{l:"«Агентам не звонить»",to:"obj:no-agents"},{l:"«Откуда номер?»",to:"obj:where"},{l:"Продана / не собственник",to:"result:refuse"}]},
   {id:"c2",form:"first",keepTips:true,title:"Ситуация",goal:"Понять, как идёт продажа и зачем человек продаёт",
    text:"Расскажите, как продажа идёт? Давно выставили?\n… А звонят, приходят на показы?\n… И продаёте, чтобы купить что-то другое?",
    tips:["Спросили — молчите. Говорит он, вы отмечаете ответы кнопками","Зеркало: повторите его последние слова с вопросом — «Звонят, но не доходят?» — и он расскажет больше"],
-   next:[{l:"Рассказал",to:"c3"},{l:"«Сам продам»",to:"obj:self"},{l:"«Уже есть агент»",to:"obj:other-agent"},{l:"«Не спешу»",to:"obj:no-rush"},{l:"«Всё хорошо, звонят»",to:"obj:all-good"}]},
+   next:[{l:"Рассказал",to:"c3"},{l:"«Зачем мне риелтор?»",to:"obj:why-realtor"},{l:"«Сам продам»",to:"obj:self"},{l:"«Уже есть агент»",to:"obj:other-agent"},{l:"«Не спешу»",to:"obj:no-rush"},{l:"«Всё хорошо, звонят»",to:"obj:all-good"}]},
   {id:"c3",form:"pain",noArgs:true,keepTips:true,title:"Боль",goal:"Найти, что его на самом деле беспокоит",
    text:"Похоже, [назовите, что услышали: «звонков много, а до показов не доходит»].\n… (пауза)\nА что сейчас больше всего мешает в продаже?",
    tips:["Метка: назовите то, что услышали, — «Похоже, звонки агентов вам уже надоели». Пауза — человек чувствует, что его поняли","Отметьте боль кнопкой — на следующем шаге будет аргумент под неё"],
@@ -805,7 +812,7 @@ const DEFAULT_SCRIPTS = [
   {id:"c4",args:true,title:"Ценность",goal:"Один аргумент под его боль — и «как вам?»",
    text:"Понимаю. [аргумент под боль — карточка ниже]\n… И всё это через «{агентство}»: юристы, безопасные расчёты, гарантия для покупателя.\nКак вам такой подход?",
    tips:["Один аргумент, не список. Подробности — только если спросит","Задали вопрос — замолчите и дождитесь ответа"],
-   next:[{l:"Интересно",to:"consent"},{l:"«Какая комиссия?»",to:"obj:commission"},{l:"«Сам продам»",to:"obj:self"},{l:"«Будет покупатель — приходите»",to:"obj:show-buyers"},{l:"«Я подумаю»",to:"obj:think"}]},
+   next:[{l:"Интересно",to:"consent"},{l:"«Чем вы лучше?»",to:"obj:why-us"},{l:"«Какая комиссия?»",to:"obj:commission"},{l:"«Сам продам»",to:"obj:self"},{l:"«Будет покупатель — приходите»",to:"obj:show-buyers"},{l:"«Я подумаю»",to:"obj:think"}]},
   {id:"consent",must:true,askPhone:true,askApt:true,title:"Согласие",goal:"«Да» в MAX, номер с MAX и номер квартиры",
    text:"Тогда давайте так: я пришлю вам в MAX короткое сообщение. Ответите «да» — и я размещу квартиру с вашими фото в базе «{агентство}»: её увидят все агенты нашего офиса, а через них их покупатели. Ни договора, ни денег. Будете против?\n… На каком номере у вас MAX?\n… И номер квартиры подскажете? Согласие оформляется на конкретную квартиру.",
    tips:["Отправьте сообщение прямо сейчас — кнопка «MAX» внизу — и попросите ответить, пока вы на линии","Номер в объявлении подменный: запишите настоящий, на нём MAX"],
@@ -1299,6 +1306,12 @@ const NEW_OBJ_V14 = [
  p:"Понимаю, звонков и так много. Без повода звонить не буду — только по делу: интерес к квартире, показ, изменения на рынке. Какой номер в MAX?"}
 ];
 NEW_OBJ_V14.forEach(n=>{ const i=DEFAULT_OBJ.findIndex(x=>x.id===n.id); if(i>=0) DEFAULT_OBJ[i]=n; else DEFAULT_OBJ.push(n); });
+const NEW_OBJ_V16 = [
+{id:"why-realtor",t:"«Зачем мне риелтор?»",flow:[["q","Понимаю. А с чем связано: не хотите платить комиссию или был неудачный опыт с агентом?"],["c","Да не вижу смысла. Выставил на Авито — и так звонят."],["q","Это единственное, что останавливает?"],["c","Ну да."],["a","Согласен, выставить объявление может каждый. Вместе с этим продажа начинается потом: пустые звонки, показы, торг и проверка денег покупателя. Это я беру на себя, договоры готовят юристы компании, а платите вы только по факту сделки. Согласитесь, спокойнее, когда этим занимается профессионал?"]],
+ a:"Согласен, выставить объявление может каждый. Но продажа начинается потом: пустые звонки, показы, торг и проверка денег покупателя. Это я беру на себя, договоры готовят юристы компании, а платите вы только по факту сделки. Давайте я пришлю в MAX, за сколько реально продаются квартиры в вашем районе, — ни к чему не обязывает. Удобно?",
+ p:"Понимаю, решение ваше. Тогда просто сверим цену: пришлю справку по проданным аналогам. Если ваша цена в рынке — отлично, продавайте сами. Какой у вас номер в MAX?"}
+];
+NEW_OBJ_V16.forEach(n=>{ if(!DEFAULT_OBJ.some(x=>x.id===n.id)) DEFAULT_OBJ.push(n); });
 const DEFAULT_FIELDS = {
   opeka:{q:"Опека есть? Дети среди собственников?",l:"Опека / дети",c:["Нет","Дети-собственники","Нужна опека"],m:true},
   matcap:{q:"Материнский капитал использовали?",l:"Маткапитал",c:["Нет","Использовали","Не знает"]},
@@ -1354,18 +1367,36 @@ const DEFAULT_FORMS = {
   report:["views","calls","showsw","fb","decision"], referral:["refs","circle"],
   fbowner:["price","owners","burden","free"], fbagent:["actual","excl","split","price","burden","showby"]
 };
+/* ---------- Почему мы: УТП Этажей для продавца ---------- */
+const WHY = [
+  {k:"guar",top:true,t:"Гарантия безопасности",say:"Сделку проверяют юристы компании, а Этажи несут финансовую ответственность: деньги вы получаете в полном размере.",q:"Вам ведь важно получить всю сумму без риска?"},
+  {k:"law",top:true,t:"Юристы уже в комиссии",say:"Договоры и консультации юристов уже входят в комиссию. Сами — за каждый договор и консультацию платите отдельно. А наши юристы работают только с недвижимостью.",q:"Согласитесь, удобнее, когда это уже включено?"},
+  {k:"an",top:true,t:"Точная цена",say:"Цену считаем по реальным сделкам: у Этажей аналитика по 800 тысячам проданных объектов. Продадите по максимальной цене и в нужный вам срок.",q:"Как определяли цену — по объявлениям или по сделкам?"},
+  {k:"pay",t:"Оплата только по факту",say:"Заранее вы ничего не платите — только по факту сделки, после регистрации. Сумма фиксированная, сколько бы ни ушло на рекламу.",q:"То есть вы ничем не рискуете, согласны?"},
+  {k:"ipo",t:"Свой ипотечный сервис",say:"Покупателя с ипотекой проверяем заранее и ведём банк до выдачи денег — сделка не срывается на одобрении.",q:"Каждый третий покупатель сейчас с ипотекой — важно, чтобы банк не сорвал сделку, согласны?"},
+  {k:"reg",t:"Покупатели из 230+ городов",say:"Объявления на сайте Этажей видят покупатели больше чем в 230 городах. Квартиру может купить и тот, кто переезжает в Кемерово.",q:"Больше покупателей — больше шансов на хорошую цену, верно?"},
+  {k:"online",t:"Можно не приезжать",say:"Сделку можно оформить онлайн через электронную регистрацию или по доверенности — справки соберу я.",q:"Удобно, если вы заняты или в другом городе?"},
+  {k:"bonus",t:"Этажи Бонус",say:"После сделки — программа «Этажи Бонус»: скидки на товары и услуги.",q:""}
+];
+function whyCard(){
+  const top=WHY.filter(x=>x.top), more=WHY.filter(x=>!x.top);
+  const one=x=>`<div class="arg"><h4>${esc(x.t)}</h4><div class="as">${esc(x.say)}</div>${x.q?`<div class="aq"><b>Вопрос:</b> ${esc(x.q)}</div>`:""}</div>`;
+  return `<div class="args" style="margin-top:6px"><div class="args-hint"><b>Главное — три факта.</b> Назовите один, под его боль, и задайте вопрос.</div>${top.map(one).join("")}
+    <details class="whymore"><summary>Если спросит ещё (${more.length})</summary><div class="args">${more.map(one).join("")}</div></details>
+    <div class="args-hint">Бонусную программу и онлайн-сделку для Кемерово уточните в офисе.</div></div>`;
+}
 /* ---------- Банк аргументов по болям ---------- */
 const ARGS = {
   torg:{l:"Торг", say:"Покупатель почти всегда торгуется. Я веду переговоры с цифрами по проданным аналогам, а не на эмоциях: моя задача — чтобы вы отдали как можно меньше.",
     calc:p=>"Средний торг на вторичке Кемерово ≈ 4,9% (Этажи, июнь 2026)"+(p?" — на этой квартире это ≈ "+fmtRub(Math.round(p*0.049/10000)*10000):"")+".",
     q:"Что ответите покупателю, который придёт и предложит минус 300?"},
-  srok:{l:"Долго висит", say:"Самое ценное время у объявления — первые недели. Потом просмотров меньше, покупатели думают, что с квартирой что-то не так, и давят ценой. Я размещу квартиру в базе компании — её увидят агенты офиса и их покупатели, а не только те, кто сам листает Авито.",
+  srok:{l:"Долго висит", say:"Самое ценное время у объявления — первые недели. Потом покупатели думают, что с квартирой что-то не так, и давят ценой. Я размещу квартиру в базе компании — её увидят агенты офиса и их покупатели, а не только Авито.",
     calc:()=>"Чем дольше висит, тем сильнее торг: старое объявление — сигнал покупателю «можно сбить».",
     q:"Сколько готовы ждать? Что будет с вашими планами, если продажа затянется на полгода?"},
   alt:{l:"Покупаю другое", say:"Чаще всего продают, чтобы купить. Самое сложное — состыковать две сделки, чтобы не остаться без жилья и не потерять присмотренный вариант. Я веду обе сразу.",
     calc:()=>"По оценкам рынка, 80–85% сделок на вторичке — альтернативные: продавец одновременно покупает.",
     q:"Уже присмотрели, что покупать? Как планируете состыковать по срокам?"},
-  ipoteka:{l:"Ипотека", say:"Сделки часто срываются на этапе банка: оценка, одобрение объекта, сроки — и вы теряете месяц. В Этажах свой ипотечный отдел: проверяем покупателя заранее и ведём банк до выдачи денег.",
+  ipoteka:{l:"Ипотека", say:"Сделки часто срываются на этапе банка — и вы теряете месяц. В Этажах свой ипотечный отдел: проверяем покупателя заранее и ведём банк до выдачи денег.",
     calc:()=>"Около 31% сделок на вторичке в 2026 — с ипотекой, то есть примерно каждый третий покупатель (Авито Недвижимость).",
     q:"Как проверите, что одобрение у покупателя реальное и банк одобрит вашу квартиру?"},
   safe:{l:"Безопасность, документы", say:"Сделка идёт через безопасные расчёты: деньги вы получаете гарантированно. Документы и договоры готовят юристы компании, а покупатель получает гарантию Этажей — защищённый покупатель решается быстрее и меньше торгуется.",
@@ -1465,7 +1496,7 @@ function saveForms(){ LS.set("rp_fields", FIELDS); LS.set("rp_forms", FORMS); }
 let draft = LS.get("rp_draft", {client:"",phone:"",object:"",notes:"",sc:0,consent:"none"});
 
 // Обновление сохранённых скриптов: тексты пользователя сохраняем, новые шаги и переходы берём из новой версии
-const SCRIPT_VER = 15;
+const SCRIPT_VER = 16;
 (function migrate(){
   const ver = LS.get("rp_ver", 1);
   if (ver >= SCRIPT_VER) return;
@@ -1518,6 +1549,12 @@ const SCRIPT_VER = 15;
   if(JSON.stringify(FORMS.inbound)===JSON.stringify(["budget","pay","rooms","srok"])) FORMS.inbound=clone(DEFAULT_FORMS.inbound);
   if(!FORMS.inoffer) FORMS.inoffer=clone(DEFAULT_FORMS.inoffer); saveForms();
   if (ver < 15){ NEW_OBJ_V14.forEach(n=>{ const i=objections.findIndex(x=>x.id===n.id); if(i>=0) objections[i]=clone(n); else objections.push(clone(n)); }); }
+  if (ver < 16){
+    const OLD_C1_TEXT="Добрый день! {клиент}? Я по вашей квартире — {объект}. Она ещё продаётся?\n… Вы собственник?\n… Меня зовут {агент}, агентство «{агентство}», работаю как раз по вашему району. Скажу сразу: звоню не уговаривать. Задам пару вопросов, а вы сами решите, интересно вам или нет. Не против?";
+    const sc=scripts.find(x=>x.id==="coldc"), st=sc&&sc.steps.find(x=>x.id==="c1"), d=DEFAULT_SCRIPTS.find(x=>x.id==="coldc").steps.find(x=>x.id==="c1");
+    if(st && st.text===OLD_C1_TEXT) st.text=d.text;
+    NEW_OBJ_V16.forEach(n=>{ if(!objections.some(x=>x.id===n.id)) objections.push(clone(n)); });
+  }
   LS.set("rp_scripts", scripts); LS.set("rp_obj", objections); LS.set("rp_ver", SCRIPT_VER);
 })();
 
@@ -1686,7 +1723,8 @@ function renderObjections(){
   const q = $("objSearch").value.trim().toLowerCase();
   const used = new Set(); cur().steps.forEach(st=>st.next.forEach(n=>{ if(n.to.startsWith("obj:")) used.add(n.to.slice(4)); }));
   const argItems = S.edit ? [] : Object.keys(ARGS).map(k=>({id:"arg-"+k,arg:k,t:"Аргумент: "+ARGS[k].l.toLowerCase(),a:ARGS[k].say+" "+ARGS[k].q}));
-  const list = objections.concat(argItems).filter(o => !q || (o.t+" "+o.a).toLowerCase().includes(q)).sort((a,b)=> q ? 0 : (used.has(b.id)?1:0)-(used.has(a.id)?1:0));
+  const whyItem = S.edit ? [] : [{id:"why-us",why:true,t:"🏢 «Чем вы лучше? Почему Этажи?»",a:"почему мы преимущества утп гарантия юристы аналитика "+WHY.map(x=>x.t+" "+x.say).join(" ")}];
+  const list = whyItem.concat(objections.concat(argItems).sort((a,b)=> q ? 0 : (used.has(b.id)?1:0)-(used.has(a.id)?1:0))).filter(o => !q || (o.t+" "+o.a).toLowerCase().includes(q));
   $("addObj").style.display = S.edit ? "" : "none";
   if (!list.length){ $("objlist").innerHTML = `<div class="empty-state">Ничего не найдено</div>`; return; }
   $("objlist").innerHTML = list.map((o,i)=>{
@@ -1694,6 +1732,7 @@ function renderObjections(){
     let body = "";
     if (open) body = S.edit
       ? `<div class="ans"><input class="edit-in" data-oid="${o.id}" data-of="t" value="${esc(o.t)}">${o.flow?`<div class="edit-note">Разговор по шагам — каждая реплика с новой строки: «Вы: …», «Клиент: …», «Аргумент: …». Закрытие пульт добавит сам. Очистите поле — останется короткий ответ ниже.</div><textarea class="edit-in" data-oid="${o.id}" data-of="flow" style="min-height:180px">${esc(flowToText(o.flow))}</textarea><div class="edit-note">Короткий ответ (для поиска и ИИ):</div>`:""}<textarea class="edit-in" data-oid="${o.id}" data-of="a">${esc(o.a)}</textarea><button class="mini" data-del="${o.id}">Удалить</button></div>`
+      : o.why ? `<div class="ans">${whyCard()}${cur().consentGoal&&cur().steps[S.step]&&!cur().steps[S.step].must?`<div><button class="mini tomeet" data-gomeet>↩ К согласию <kbd>M</kbd></button></div>`:""}</div>`
       : o.arg ? `<div class="ans">${argCard(o.arg)}</div>`
       : `<div class="ans">${o.flow&&o.flow.length?renderFlow(o):fill(o.a)}${OBJ_ARG[o.id]&&ARGS[OBJ_ARG[o.id]]?`<div class="objarg"><b>Расклад:</b> ${esc(ARGS[OBJ_ARG[o.id]].calc(argPrice()))}<br><b>Вопрос:</b> ${esc(ARGS[OBJ_ARG[o.id]].q)}</div>`:""}${isMeetScenario()&&cur().steps[S.step]&&!cur().steps[S.step].meeting?`<div><button class="mini tomeet" data-gomeet>↩ К встрече <kbd>M</kbd></button></div>`:cur().consentGoal&&cur().steps[S.step]&&!cur().steps[S.step].must?`<div><button class="mini tomeet" data-gomeet>↩ К согласию <kbd>M</kbd></button></div>`:""}</div>`;
     return `<div class="ob ${open?"open":""} ${q&&i===0?"first":""}" id="ob-${o.id}"><button data-obj="${o.id}">${esc(o.t)}</button>${body}</div>`;
@@ -1747,7 +1786,7 @@ document.addEventListener("click",ev=>{ const t=ev.target.closest("[data-flnext]
   if(t.dataset.flnext) S.flowPos[id]=(S.flowPos[id]||0)+1; else if(t.dataset.flall) S.flowPos[id]=99; else S.flowPos[id]=0;
   renderObjections(); },true);
 function openObjection(id, flash){
-  S.openObj = (S.openObj===id && !flash) ? null : id; if(S.openObj && !String(id).startsWith("arg-")) S.objs.add(id);
+  S.openObj = (S.openObj===id && !flash) ? null : id; if(S.openObj && !String(id).startsWith("arg-") && id!=="why-us") S.objs.add(id);
   if (flash && $("objSearch").value){ $("objSearch").value=""; }
   renderObjections();
   const el = $("ob-"+id);
@@ -3197,7 +3236,7 @@ const trHist=()=>LS.get("rp_train",[]);
 function trainHTML(){
   const H=trHist(), n=H.length, avg=n?Math.round(H.reduce((s,x)=>s+(x.score||0),0)/n*10)/10:0, mt=n?Math.round(H.filter(x=>x.meet).length/n*100):0;
   const scs=scripts.filter(s=>{ const b=scBase(s.id); return b==="coldc"||SELLER_SC.includes(b); });
-  return `<div class="trset">
+  return `<div class="trset"><div class="trrow"><span class="ml">Разминка</span><button class="mini" data-open-cards>🃏 Карточки аргументов — 5 минут вслух</button></div>
     <div class="trrow"><span class="ml">Сценарий</span><div class="qchips">${scs.map(s=>`<button class="qc ${TR.sc===s.id?"on":""}" data-trsc="${s.id}">${esc(s.name)}</button>`).join("")}</div></div>
     <div class="trrow"><span class="ml">Клиент</span><div class="qchips">${PERSONAS.map(p=>`<button class="qc ${TR.persona===p.k?"on":""}" data-trp="${p.k}" title="${esc(p.d)}">${esc(p.t)}</button>`).join("")}</div></div>
     <div class="trrow"><span class="ml">Сложность</span><div class="qchips">${LEVELS.map(l=>`<button class="qc ${TR.level===l.k?"on":""}" data-trl="${l.k}" title="${esc(l.d)}">${esc(l.t)}</button>`).join("")}</div></div>
@@ -3210,7 +3249,7 @@ function trainHTML(){
 }
 function openTrain(objId){
   openModal("trainModal");
-  if(!AI.sample){ $("trBody").innerHTML=`<div class="ai-off" style="margin:16px"><b>Тренажёр работает в версии пульта на claude.ai</b> — там ИИ играет клиента. Эта копия-файл работает без ИИ.</div>`; $("trForm").hidden=true; return; }
+  if(!AI.sample){ $("trBody").innerHTML=`<div class="ai-off" style="margin:16px"><b>Тренажёр работает в версии пульта на claude.ai</b> — там ИИ играет клиента. Эта копия-файл работает без ИИ.</div><div style="margin:0 16px 16px"><button class="primary" style="margin-left:0" data-open-cards>🃏 Карточки аргументов — тренировка без ИИ</button></div>`; $("trForm").hidden=true; return; }
   if(objId){ TR.obj=objId; TR.msgs=[]; TR.done=null; }
   if(TR.msgs.length && !TR.done){ renderTrain(); return; }
   TR.msgs=[]; TR.done=null; $("trForm").hidden=true; $("trBody").innerHTML=trainHTML();
@@ -3321,6 +3360,57 @@ function objOutcomes(E){
   return Object.entries(m).map(([id,x])=>({id,...x,pct:Math.round(x.meet/x.n*100)})).sort((a,b)=>a.pct-b.pct||b.n-a.n).slice(0,7);
 }
 
+
+/* ---------- Карточки аргументов: тренировка вслух, без ИИ ---------- */
+const PAIN_SAYS={torg:"Боюсь, будут сильно торговаться",srok:"Висит уже давно, никто не берёт",alt:"Продаю, чтобы купить другую",ipoteka:"Все покупатели с ипотекой, это долго",safe:"Боюсь мошенников, страшно за деньги",time:"Некогда мне на показы бегать",price:"Цену я сам знаю, рынок понимаю"};
+const CARD_OBJ=["why-realtor","self","commission","no-agents","newbie","buyer-pays","other-agent","think","price","no-rush","all-good"];
+const CD={deck:[],i:0,open:false,ok:0,bad:0,kind:"all",done:false};
+function cdWeak(){ try{ return JSON.parse(localStorage.getItem("rp_cards_weak")||"[]"); }catch(e){ return []; } }
+function cdSetWeak(a){ try{ localStorage.setItem("rp_cards_weak",JSON.stringify(a)); }catch(e){} }
+function cdAll(){
+  const pains=Object.keys(ARGS).map(k=>({id:"p-"+k,kind:"pain",tag:"Боль",q:"Собственник: «"+(PAIN_SAYS[k]||ARGS[k].l)+"»",a:ARGS[k].say,x:ARGS[k].q}));
+  const why=WHY.map(w=>({id:"w-"+w.k,kind:"why",tag:"Почему мы",q:"«А чем вы лучше?» — скажите про: "+w.t.toLowerCase(),a:w.say,x:w.q}));
+  const obj=CARD_OBJ.map(id=>objections.find(o=>o.id===id)).filter(Boolean).map(o=>({id:"o-"+o.id,kind:"obj",tag:"Возражение",q:"Собственник: "+o.t,a:o.a,x:""}));
+  return pains.concat(why,obj);
+}
+function cdStart(kind){
+  CD.kind=kind||CD.kind; const w=cdWeak();
+  let d=cdAll().filter(c=>CD.kind==="all"||(CD.kind==="weak"?w.includes(c.id):c.kind===CD.kind));
+  for(let i=d.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]]; }
+  d.sort((a,b)=>(w.includes(b.id)?1:0)-(w.includes(a.id)?1:0));
+  Object.assign(CD,{deck:d,i:0,open:false,ok:0,bad:0,done:!d.length}); renderCards();
+}
+function renderCards(){
+  const w=cdWeak(), K=[["all","Все"],["pain","Боли"],["why","Почему мы"],["obj","Возражения"],["weak","Слабые ("+w.length+")"]];
+  let h=`<div class="qchips" style="margin:0 0 12px">${K.map(([k,t])=>`<button class="qc ${CD.kind===k?"on":""}" data-cdk="${k}">${t}</button>`).join("")}</div>`;
+  if(CD.done||CD.i>=CD.deck.length){
+    h+= CD.deck.length ? `<div class="cd-card"><div class="cd-q">Готово: знали ${CD.ok} из ${CD.ok+CD.bad}</div><div class="args-hint">Слабые карточки сохранены — в следующий раз они пойдут первыми.</div><div class="cd-btns"><button class="primary" data-cdk="${CD.kind}">↺ Ещё раз</button>${w.length?`<button class="mini" data-cdk="weak">Только слабые</button>`:""}</div></div>`
+      : `<div class="args-hint">${CD.kind==="weak"?"Слабых карточек нет — отлично. Выберите другой набор.":"Карточек нет."}</div>`;
+  } else {
+    const c=CD.deck[CD.i];
+    h+=`<div class="cd-meta">${CD.i+1} из ${CD.deck.length} · ${esc(c.tag)}</div><div class="cd-card"><div class="cd-q">${esc(c.q)}</div>
+      ${CD.open?`<div class="arg"><div class="as">${fill(c.a)}</div>${c.x?`<div class="aq"><b>Вопрос:</b> ${esc(c.x)}</div>`:""}</div>
+        <div class="cd-btns"><button class="mini" data-cdr="0">↺ Повторить</button><button class="primary" data-cdr="1">✓ Знал</button></div>`
+      :`<div class="args-hint">Ответьте вслух, своими словами — как по телефону. Потом сверьтесь.</div><div class="cd-btns"><button class="primary" data-cdopen>Показать ответ</button></div>`}</div>`;
+  }
+  $("cdBody").innerHTML=h;
+}
+function cdRate(ok){
+  const c=CD.deck[CD.i]; let w=cdWeak().filter(x=>x!==c.id);
+  if(ok){ CD.ok++; } else { CD.bad++; w.push(c.id); if(CD.deck.filter(x=>x.id===c.id).length<2) CD.deck.splice(Math.min(CD.i+4,CD.deck.length),0,c); }
+  cdSetWeak(w); CD.i++; CD.open=false; renderCards();
+}
+function openCards(){ openModal("cardsModal"); if(!CD.deck.length||CD.done||CD.i>=CD.deck.length) cdStart(CD.kind); else renderCards(); }
+document.body.insertAdjacentHTML("beforeend",`<div class="modal" id="cardsModal"><div class="mbox sm" style="width:min(620px,100%)">
+  <div class="mhead"><h3>🃏 Карточки аргументов</h3><span class="edit-note" style="margin-right:auto">5 минут перед звонками · работает без ИИ</span><button class="icon-btn" data-close>✕</button></div>
+  <div class="mbody" id="cdBody"></div></div></div>`);
+document.addEventListener("click",ev=>{ const t=ev.target.closest("[data-cdk],[data-cdopen],[data-cdr],[data-open-cards]"); if(!t) return;
+  const d=t.dataset;
+  if(t.hasAttribute("data-open-cards")){ closeModals(); openCards(); }
+  else if(d.cdk) cdStart(d.cdk);
+  else if(t.hasAttribute("data-cdopen")){ CD.open=true; renderCards(); }
+  else if(d.cdr!==undefined) cdRate(d.cdr==="1");
+});
 /* ---------- UI ---------- */
 document.body.insertAdjacentHTML("beforeend",`
 <div class="modal" id="trainModal"><div class="mbox" style="width:min(1000px,100%)">
@@ -4692,13 +4782,13 @@ function crmGo(v){
 }
 function crmRefresh(){ if(CRM.view!=="call") renderPane(); }
 function openMore(){
-  const items=[["📒","Журнал звонков","log"],["📊","Анализ цен","cma"],["🏘","Подбор вариантов","pick"],["📈","Статистика","stats"],["🗓","Планирование дня","bw"],["✉","Шаблоны сообщений","tpl"],["🤖","AI-наставник","ai"],["🎭","Тренажёр звонков","train"],["🏦","Ипотечный калькулятор","mg"],["✎","Правка скриптов","edit"],["💾","Резервная копия","bk"],["◐","Тема","theme"],["?","Подсказки","help"],["⚙","Настройки","set"]];
+  const items=[["📒","Журнал звонков","log"],["📊","Анализ цен","cma"],["🏘","Подбор вариантов","pick"],["📈","Статистика","stats"],["🗓","Планирование дня","bw"],["✉","Шаблоны сообщений","tpl"],["🤖","AI-наставник","ai"],["🎭","Тренажёр звонков","train"],["🃏","Карточки аргументов","cards"],["🏦","Ипотечный калькулятор","mg"],["✎","Правка скриптов","edit"],["💾","Резервная копия","bk"],["◐","Тема","theme"],["?","Подсказки","help"],["⚙","Настройки","set"]];
   $("moreBody").innerHTML=`<div class="more-grid">${items.map(([i,t,k])=>`<button data-more="${k}"><span>${i}</span>${t}</button>`).join("")}</div>`;
   openModal("moreModal");
 }
 function moreAct(k){
   closeModals();
-  const A={log:()=>openModal("logModal"),cma:()=>openCma(null),pick:()=>openPick(),stats:()=>{ renderStats(); openModal("statsModal"); },bw:()=>bwOpen(),tpl:()=>openTpl(null),ai:()=>openAI(),train:()=>openTrain(),mg:()=>openMortgage(),
+  const A={log:()=>openModal("logModal"),cma:()=>openCma(null),pick:()=>openPick(),stats:()=>{ renderStats(); openModal("statsModal"); },bw:()=>bwOpen(),tpl:()=>openTpl(null),ai:()=>openAI(),train:()=>openTrain(),cards:()=>openCards(),mg:()=>openMortgage(),
     edit:()=>{ if(CRM.view!=="call") crmGo("call"); toggleEdit(); },bk:()=>bkChipClick(),theme:()=>$("btnTheme").click(),help:()=>{ if(CRM.view!=="call") crmGo("call"); setHelp(!helpOn); },set:()=>$("btnSet").click()};
   (A[k]||(()=>{}))();
 }
