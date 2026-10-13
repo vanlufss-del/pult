@@ -120,8 +120,23 @@ main{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr) 400px;min-hei
 .arg .ac,.arg .aq{margin-top:6px;font-size:14px;line-height:1.4;color:var(--muted)}
 .arg .ac b,.arg .aq b{color:var(--ink)}
 .args-hint{font-size:13px;color:var(--muted);padding:2px 2px 0}
-.whymore summary{cursor:pointer;font-size:14px;color:var(--accent);padding:4px 2px}
-.whymore .args{margin-top:8px}
+.whyshort{font-size:14px;line-height:1.45;color:var(--muted);display:grid;gap:4px;padding:2px}
+.whyshort b{color:var(--ink)}
+.qarow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.qarow>span{font-size:12px;color:var(--muted);width:56px}
+.qab{border:1.5px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 12px;font-size:14px;min-height:38px;cursor:pointer}
+.qab.mk{border-color:var(--warn);background:var(--warn-soft)}
+.qab.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.qabody{margin-top:8px}
+.qabody .arg .as{font-size:17px}
+.qainline{padding:10px 14px;border-bottom:1px solid var(--line);max-height:55vh;overflow:auto}
+.qainline .qarow>span{width:auto;min-width:48px}
+.qasheet{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);border-top:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.18);max-height:80vh;display:none;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.qasheet.show{display:flex}
+.qatop{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.qatop b{margin-right:auto}
+.qain{overflow:auto;padding:10px 12px 18px}
+@media (max-width:980px){ .qainline{display:none} }
 .cd-meta{font-size:13px;color:var(--muted);margin:0 0 6px}
 .cd-card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px;display:grid;gap:12px}
 .cd-q{font-size:19px;line-height:1.35;font-weight:600}
@@ -664,6 +679,7 @@ tr.due td{background:var(--warn-soft)}
       <h3>Возражения <span><button class="mini" id="addObj" style="display:none">+ Добавить</button></span></h3>
       <input class="search" id="objSearch" placeholder="Поиск ( / ), Enter — открыть">
     </div>
+    <div id="qaInline" class="qainline"></div>
     <div id="objlist"></div>
   </aside>
 </main>
@@ -1382,7 +1398,7 @@ function whyCard(){
   const top=WHY.filter(x=>x.top), more=WHY.filter(x=>!x.top);
   const one=x=>`<div class="arg"><h4>${esc(x.t)}</h4><div class="as">${esc(x.say)}</div>${x.q?`<div class="aq"><b>Вопрос:</b> ${esc(x.q)}</div>`:""}</div>`;
   return `<div class="args" style="margin-top:6px"><div class="args-hint"><b>Главное — три факта.</b> Назовите один, под его боль, и задайте вопрос.</div>${top.map(one).join("")}
-    <details class="whymore"><summary>Если спросит ещё (${more.length})</summary><div class="args">${more.map(one).join("")}</div></details>
+    <div class="whyshort"><b>Если спросит ещё:</b>${more.map(x=>`<div><b>${esc(x.t)}.</b> ${esc(x.say)}</div>`).join("")}</div>
     <div class="args-hint">Бонусную программу и онлайн-сделку для Кемерово уточните в офисе.</div></div>`;
 }
 /* ---------- Банк аргументов по болям ---------- */
@@ -1427,6 +1443,7 @@ function argCard(k){
   return `<div class="arg"><h4>${esc(A.l)}</h4><div class="as">${esc(A.say)}</div><div class="ac"><b>Расклад:</b> ${esc(A.calc(argPrice()))}</div><div class="aq"><b>Вопрос:</b> ${esc(A.q)}</div></div>`;
 }
 function renderPainArgs(){
+  setTimeout(()=>{ try{ qaRender(); }catch(e){} },0);
   const v=S.form.pain; const sel=((v&&v.c)||[]).slice();
   const nb=(S.form.nextbuy&&S.form.nextbuy.c)||[]; if(nb.some(x=>/покупает|встречн/i.test(x)) && !sel.some(x=>argKey(x)==="alt")) sel.unshift("Покупаю другое");
   if(!sel.length) return `<div class="args"><div class="args-hint">${(cur().steps[S.step]||{}).args?"Боль не отмечена. Вернитесь на шаг «Боль» и отметьте её кнопкой — здесь появится аргумент.":"Отметьте, что беспокоит собственника, — здесь появится аргумент: фраза, расклад и вопрос."}</div></div>`;
@@ -1748,7 +1765,7 @@ function dueCount(){
   return log.filter(e => !e.done && ((e.callbackAt && new Date(e.callbackAt) <= end) || e.consent==="sent" || (e.mt && e.mt.date && e.mt.date<=tm && e.mt.date>=todayISO() && !e.conf))).length;
 }
 function renderBadge(){ const n=dueCount(); $("dueBadge").innerHTML = n?`<span class="badge">${n}</span>`:""; }
-function renderAll(){ renderDayPanel(); renderGoal(); renderConsent(); renderTabs(); renderStepper(); renderStep(); renderObjections(); renderResults(); renderBadge(); updateTel(); renderAdBar(); renderPlanPin(); }
+function renderAll(){ try{ qaRender(); }catch(e){} renderDayPanel(); renderGoal(); renderConsent(); renderTabs(); renderStepper(); renderStep(); renderObjections(); renderResults(); renderBadge(); updateTel(); renderAdBar(); renderPlanPin(); }
 
 /* ================== НАВИГАЦИЯ ================== */
 function goStep(i, push=true){
@@ -1794,7 +1811,7 @@ function openObjection(id, flash){
 }
 function follow(to){
   const at=to.indexOf("@"); if(at>0){ const [fk,fv]=to.slice(at+1).split(":"); if(fk&&fv){ S.form[fk]={c:[fv],t:(S.form[fk]&&S.form[fk].t)||""}; saveDraft(); } to=to.slice(0,at); }
-  if (to.startsWith("obj:")) openObjection(to.slice(4), true);
+  if (to.startsWith("obj:")){ const id=to.slice(4); if(qaMobile() && (id==="why-us"||objections.some(o=>o.id===id))) qaOpen(id); else openObjection(id, true); }
   else if (to.startsWith("result:")){ setResult(to.slice(7)); $("notes").focus(); }
   else if (to.startsWith("cb:")){
     const d=new Date(); d.setDate(d.getDate()+(+to.slice(3))); d.setHours(11,0,0,0);
@@ -3361,6 +3378,34 @@ function objOutcomes(E){
 }
 
 
+
+/* ---------- Быстрые аргументы: 1 нажатие — панель, 2-е — фраза ---------- */
+const QA_PAIN=[["torg","Торг"],["srok","Висит"],["alt","Покупает"],["ipoteka","Ипотека"],["safe","Безопасность"],["time","Нет времени"],["price","Цена"]];
+const QA_OBJ=[["why-us","Чем лучше?"],["why-realtor","Зачем риелтор?"],["self","Сам продам"],["commission","Дорого"],["no-agents","Агентам не звонить"],["think","Подумаю"],["newbie","Новичок?"]];
+const QA={k:null};
+function qaMarked(){ const v=S.form.pain; return ((v&&v.c)||[]).map(argKey).filter(k=>ARGS[k]); }
+function qaBody(k){
+  if(!k) return `<div class="args-hint">Нажмите кнопку — фраза появится здесь.</div>`;
+  if(k==="why-us") return whyCard();
+  if(ARGS[k]) return argCard(k);
+  const o=objections.find(x=>x.id===k); if(!o) return "";
+  const ga=OBJ_ARG[o.id]&&ARGS[OBJ_ARG[o.id]];
+  return `<div class="arg"><h4>${esc(o.t)}</h4><div class="as">${fill(o.a)}</div>${o.p?`<div class="aq"><b>Если надавит ещё раз:</b> ${fill(o.p)}</div>`:""}${ga?`<div class="ac"><b>Расклад:</b> ${esc(ga.calc(argPrice()))}</div>`:""}</div>`;
+}
+function qaHTML(){
+  const mk=qaMarked(), b=([k,l])=>`<button class="qab ${QA.k===k?"on":""} ${mk.includes(k)?"mk":""}" data-qa="${k}">${l}</button>`;
+  return `<div class="qahead"><div class="qarow"><span>Боль</span>${QA_PAIN.map(b).join("")}</div><div class="qarow"><span>Говорит</span>${QA_OBJ.map(b).filter((x,i)=>objections.some(o=>o.id===QA_OBJ[i][0])||QA_OBJ[i][0]==="why-us").join("")}</div></div><div class="qabody">${qaBody(QA.k)}</div>`;
+}
+function qaRender(){ const sh=$("qaSheet"); if(sh&&sh.classList.contains("show")) $("qaIn").innerHTML=qaHTML(); const il=$("qaInline"); if(il) il.innerHTML=qaHTML(); }
+function qaMobile(){ return matchMedia("(max-width:980px)").matches; }
+function qaOpen(k){ if(k!==undefined) QA.k=k; else if(!QA.k){ const mk=qaMarked(); QA.k=mk[0]||null; } $("qaSheet").classList.add("show"); qaRender(); $("qaIn").scrollTop=0; }
+function qaClose(){ $("qaSheet").classList.remove("show"); }
+document.body.insertAdjacentHTML("beforeend",`<div id="qaSheet" class="qasheet"><div class="qatop"><b>Аргументы</b><button class="mini" data-qaall>Все возражения и поиск</button><button class="icon-btn" data-qaclose>✕</button></div><div id="qaIn" class="qain"></div></div>`);
+document.addEventListener("click",ev=>{ const t=ev.target.closest("[data-qa],[data-qaclose],[data-qaall]"); if(!t) return; ev.stopPropagation();
+  if(t.dataset.qa!==undefined){ QA.k=(QA.k===t.dataset.qa&&!$("qaSheet").classList.contains("show"))?null:t.dataset.qa; qaRender(); const b=t.closest(".qain,#qaInline"); const body=b&&b.querySelector(".qabody"); if(body&&qaMobile()) body.scrollIntoView({block:"nearest"}); }
+  else if(t.hasAttribute("data-qaclose")) qaClose();
+  else if(t.hasAttribute("data-qaall")){ qaClose(); $("objcol").scrollIntoView({behavior:"smooth"}); }
+});
 /* ---------- Карточки аргументов: тренировка вслух, без ИИ ---------- */
 const PAIN_SAYS={torg:"Боюсь, будут сильно торговаться",srok:"Висит уже давно, никто не берёт",alt:"Продаю, чтобы купить другую",ipoteka:"Все покупатели с ипотекой, это долго",safe:"Боюсь мошенников, страшно за деньги",time:"Некогда мне на показы бегать",price:"Цену я сам знаю, рынок понимаю"};
 const CARD_OBJ=["why-realtor","self","commission","no-agents","newbie","buyer-pays","other-agent","think","price","no-rush","all-good"];
@@ -4982,7 +5027,8 @@ document.querySelector("main").insertAdjacentHTML("afterend",`<section id="vpane
 $("center").insertAdjacentHTML("afterbegin",`<div id="crmChip" class="crmchip" hidden></div>`);
 document.body.insertAdjacentHTML("beforeend",`<div class="modal" id="moreModal"><div class="mbox sm"><div class="mhead"><h3>Ещё</h3><button class="icon-btn" data-close>✕</button></div><div class="mbody" id="moreBody"></div></div></div>
 <button id="fabObj" class="fab" title="Возражения">⚡</button>`);
-$("fabObj").onclick=()=>{ const oc=$("objcol"), r=oc.getBoundingClientRect(); if(r.top<innerHeight/2&&r.top>-r.height+100) $("script").scrollIntoView({behavior:"smooth"}); else oc.scrollIntoView({behavior:"smooth"}); };
+$("fabObj").onclick=()=>{ if($("qaSheet").classList.contains("show")) qaClose(); else qaOpen(); };
+$("fabObj").title="Аргументы";
 renderCrmChip();
 const _crmFD=findDups; findDups=function(){ const r=_crmFD(); const l=CRM.link; return l&&l.c?r.filter(x=>x.e.clientId!==l.c):r; };
 const _crmBD=backupData; backupData=function(){ const d=_crmBD(); d.clients=CLIENTS; d.objects=OBJECTS; return d; };
