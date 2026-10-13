@@ -128,6 +128,8 @@ main{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr) 400px;min-hei
 .qab.mk{border-color:var(--warn);background:var(--warn-soft)}
 .qab.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
 .qabody{margin-top:8px}
+.qasteps{display:grid;gap:4px;font-size:15px;line-height:1.4;padding:8px 10px;margin-bottom:8px;border-radius:8px;background:var(--warn-soft)}
+.qanote{font-size:13px;color:var(--muted)}
 .qabody .arg .as{font-size:17px}
 .qainline{padding:10px 14px;border-bottom:1px solid var(--line);max-height:55vh;overflow:auto}
 .qainline .qarow>span{width:auto;min-width:48px}
@@ -3381,7 +3383,7 @@ function objOutcomes(E){
 
 /* ---------- Быстрые аргументы: 1 нажатие — панель, 2-е — фраза ---------- */
 const QA_PAIN=[["torg","Торг"],["srok","Висит"],["alt","Покупает"],["ipoteka","Ипотека"],["safe","Безопасность"],["time","Нет времени"],["price","Цена"]];
-const QA_OBJ=[["why-us","Чем лучше?"],["why-realtor","Зачем риелтор?"],["self","Сам продам"],["commission","Дорого"],["no-agents","Агентам не звонить"],["think","Подумаю"],["newbie","Новичок?"]];
+const QA_OBJ=[["why-us","Чем лучше?"],["why-realtor","Зачем риелтор?"],["self","Сам продам"],["commission","Дорого"],["no-agents","Агентам не звонить"],["show-buyers","Будет покупатель — приходите"],["think","Подумаю"],["newbie","Новичок?"]];
 const QA={k:null};
 function qaMarked(){ const v=S.form.pain; return ((v&&v.c)||[]).map(argKey).filter(k=>ARGS[k]); }
 function qaBody(k){
@@ -3390,7 +3392,11 @@ function qaBody(k){
   if(ARGS[k]) return argCard(k);
   const o=objections.find(x=>x.id===k); if(!o) return "";
   const ga=OBJ_ARG[o.id]&&ARGS[OBJ_ARG[o.id]];
-  return `<div class="arg"><h4>${esc(o.t)}</h4><div class="as">${fill(o.a)}</div>${o.p?`<div class="aq"><b>Если надавит ещё раз:</b> ${fill(o.p)}</div>`:""}${ga?`<div class="ac"><b>Расклад:</b> ${esc(ga.calc(argPrice()))}</div>`:""}</div>`;
+  const fq=(o.flow||[]).filter(x=>x[0]==="q").map(x=>x[1]);
+  const ask=fq[0]||"Подскажите, с чем это связано?";
+  const only=fq.find(x=>/единствен/i.test(x))||"Это единственное, что останавливает?";
+  const steps=`<div class="qasteps"><div><b>1. Уточни причину:</b> «${fill(ask)}»</div><div><b>2. Проверь:</b> «${fill(only)}»</div><div class="qanote">Если причина другая — нажми её кнопку выше. Если та же — говори:</div></div>`;
+  return `${steps}<div class="arg"><h4>3. ${esc(o.t)}</h4><div class="as">${fill(o.a)}</div>${o.p?`<div class="aq"><b>Если надавит ещё раз:</b> ${fill(o.p)}</div>`:""}${ga?`<div class="ac"><b>Расклад:</b> ${esc(ga.calc(argPrice()))}</div>`:""}</div>`;
 }
 function qaHTML(){
   const mk=qaMarked(), b=([k,l])=>`<button class="qab ${QA.k===k?"on":""} ${mk.includes(k)?"mk":""}" data-qa="${k}">${l}</button>`;
