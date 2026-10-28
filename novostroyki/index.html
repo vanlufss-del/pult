@@ -12,7 +12,7 @@
 <link rel="icon" href="icon-192.png">
 <title>Пульт новостроек</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@600&display=swap" media="print" onload="this.media='all'">
 <style>
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 html,body{margin:0}
@@ -43,6 +43,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 h1{font-family:var(--f-display);font-weight:600;font-size:17px;letter-spacing:.01em;margin:0}
 h1 b{color:var(--accent);font-weight:600}
 .stamp{font-size:12px;color:var(--muted)}
+#off.ok{color:var(--ok)}#off.no{color:var(--warn)}
 .timer{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 14px var(--f-body);font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap}
 .timer.run{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .timer.end{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
@@ -136,7 +137,7 @@ td.win{color:var(--ok);font-weight:600}
 <div class="wrap">
 <header>
   <div class="top">
-    <div><h1>Пульт <b>новостроек</b></h1><div class="stamp" id="stamp"></div></div>
+    <div><h1>Пульт <b>новостроек</b></h1><div class="stamp" id="stamp"></div><div class="stamp" id="off"></div></div>
     <button class="timer" id="timer" type="button" aria-label="Таймер подготовки к билету 5 минут">⏱ 5:00</button>
   </div>
   <nav role="tablist">
@@ -597,7 +598,17 @@ fetch(SHEET_URL,{cache:"no-store"}).then(r=>{if(!r.ok)throw 0;return r.text()}).
   if(/^\s*</.test(t))throw 0; const rows=parseCSV(t);
   if(applySheet(rows)){store.set("sheet",{rows,at:Date.now()});DATA_SRC="таблица обновлена";stampText();render()}
 }).catch(()=>{DATA_SRC=cached?"сохранённая копия, нет связи":"встроенные данные, таблица недоступна";stampText()});
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+function offState(ok,t){const o=$("#off");o.textContent=t;o.className="stamp "+(ok?"ok":"no")}
+async function checkOffline(){
+  if(!("serviceWorker" in navigator)||!window.caches){offState(false,"Офлайн не поддерживается в этом окне — открой через Safari или иконку");return}
+  try{const ks=await caches.keys();let ok=false;
+    for(const k of ks){if(k.startsWith("novostroyki-")&&await (await caches.open(k)).match("index.html"))ok=true}
+    if(ok&&navigator.serviceWorker.controller)offState(true,"✓ Готов к работе без интернета");
+    else offState(false,"Офлайн ещё не готов — подержи открытым с интернетом 10 сек и открой заново")}
+  catch(e){offState(false,"Офлайн недоступен в этом окне")}}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").then(()=>navigator.serviceWorker.ready).then(()=>setTimeout(checkOffline,800)).catch(()=>checkOffline());
+  navigator.serviceWorker.addEventListener("controllerchange",checkOffline)}
+checkOffline();
 </script>
 </body>
 </html>
