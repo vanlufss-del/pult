@@ -1,4 +1,4 @@
-const C="novostroyki-2";
+const C="novostroyki-3";
 const FILES=["./","index.html","manifest.webmanifest","icon-192.png","icon-512.png","apple-touch-icon.png"];
 // iOS Safari отказывается показывать ответ с редиректом — пересобираем ответ «чистым»
 const clean=r=>r.redirected?r.blob().then(b=>new Response(b,{status:200,headers:r.headers})):Promise.resolve(r);
